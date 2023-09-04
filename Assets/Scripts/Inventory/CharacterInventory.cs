@@ -1,14 +1,28 @@
-using System.Collections.Generic;
 using UnityEngine;
 
-public class CharacterInventory : MonoBehaviour
+public class CharacterInventory : MonoBehaviour, IPointerClickHandler
 {
-    private Dictionary<int, Item> _inventoryItems;
+    private CharacterInfo _characterInfo;
+    public CharacterInfo CharacterInfo => _characterInfo ?? SetCharacterInfo();
 
-    private Dictionary<EquipmentSlot, Item> _equipmentItems;
-
-    public void OpenInentory()
+    public void LeftMouseClick()
     {
+        OpenInventory();
+    }
 
+    public void RightMouseClick()
+    {
+        LeftMouseClick();
+    }
+
+    public void OpenInventory()
+    {
+        InventoryController.Instance.OpenInventory(this);
+    }
+
+    private CharacterInfo SetCharacterInfo()
+    {
+        _characterInfo = GetComponentInParent<CharacterInfo>();
+        return _characterInfo;
     }
 }

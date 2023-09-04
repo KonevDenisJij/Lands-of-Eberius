@@ -51,7 +51,7 @@ public abstract class Item : ScriptableObject
         var pickUpItem = GetItemPickUp();
         pickUpItem.transform.position = position + new Vector3(0f, 0.35f, 0f) + direction * 0.1f;
 
-        var destination = position + direction * _flyDistance;
+        var destination = position + direction * _flyDistance + new Vector3(0f, pickUpItem.transform.localScale.y / 2, 0f);
 
         pickUpItem.ThrowItem(destination, _flyDistance);
     }

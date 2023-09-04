@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -11,6 +14,11 @@ public class PlayerController : MonoBehaviour
     private float _mouseSensitivity = 100f;
     [SerializeField]
     private Transform _head;
+
+    [SerializeField]
+    private GraphicRaycaster _raycaster;
+    [SerializeField]
+    private EventSystem _eventSystem;
 
     private float _rotationElapsedFrames = 0f;
     private float _movementElapsedFrames = 0f;
@@ -46,12 +54,27 @@ public class PlayerController : MonoBehaviour
     {
         if (!_freeRotationMode && Input.GetMouseButtonDown(0))
         {
-            if (InventoryController.Instance.HandleMouseAction(out var hit))
+            // Определяем физ объекты
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            Physics.Raycast(ray, out var hit, 1f);
+
+            // Определяем UI объекты
+            var m_PointerEventData = new PointerEventData(_eventSystem);
+            m_PointerEventData.position = Input.mousePosition;
+            List<RaycastResult> results = new List<RaycastResult>();
+            _raycaster.Raycast(m_PointerEventData, results);
+
+            // Проверка на размещение/метание предмета
+            if (!results.Any(a => a.gameObject.GetComponent<IPointerClickHandler>() != null) && InventoryController.Instance.HandleMouseAction(ray, hit))
             {
                 return;
             }
 
-            var interactableObject = hit.transform.gameObject.GetComponent<IPointerClickHandler>();
+            var interactableObject = results.Any()
+                ? results.SingleOrDefault(a => a.gameObject.GetComponent<IPointerClickHandler>() != null).gameObject?.GetComponent<IPointerClickHandler>()
+                : hit.transform != null
+                    ? hit.transform.gameObject.GetComponent<IPointerClickHandler>()
+                    : null;
 
             if (interactableObject != null)
             {
@@ -86,6 +109,40 @@ public class PlayerController : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.D))
         {
             SetDirection(MovementDirection.Right);
+        }
+    }
+
+    /// <summary>
+    /// Кнопки управления поворотом
+    /// </summary>
+    private void HandleRotation()
+    {
+        if (Input.GetMouseButton(1))
+        {
+            FreeRotation();
+            _freeRotationMode = true;
+            return;
+        }
+
+        if (Input.GetMouseButtonUp(1))
+        {
+            SetRotation(0);
+            _freeRotationMode = false;
+        }
+
+        if (_turning)
+        {
+            Turn();
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            SetRotation(-1);
+        }
+        else if (Input.GetKeyDown(KeyCode.E))
+        {
+            SetRotation(1);
         }
     }
 
@@ -130,51 +187,17 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void Move()
     {
-        var interpolationRatio = _movementElapsedFrames / _rotationSpeed;
+        var interpolationRatio = _movementElapsedFrames / _movementSpeed;
 
         var interpolatedPosition = Vector3.LerpUnclamped(_oldPosition, _nextPosition, interpolationRatio);
         transform.position = interpolatedPosition;
 
         _movementElapsedFrames += Time.deltaTime;  // reset elapsedFrames to zero after it reached (interpolationFramesCount + 1)
-        if (_movementElapsedFrames >= _rotationSpeed)
+        if (_movementElapsedFrames >= _movementSpeed)
         {
             _movementElapsedFrames = 0f;
             transform.position = _nextPosition;
             _mooving = false;
-        }
-    }
-
-    /// <summary>
-    /// Кнопки управления поворотом
-    /// </summary>
-    private void HandleRotation()
-    {
-        if (Input.GetMouseButton(1))
-        {
-            FreeRotation();
-            _freeRotationMode = true;
-            return;
-        }
-
-        if (Input.GetMouseButtonUp(1))
-        {
-            SetRotation(0);
-            _freeRotationMode = false;
-        }
-
-        if (_turning)
-        {
-            Turn();
-            return;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            SetRotation(-1);
-        }
-        else if (Input.GetKeyDown(KeyCode.E))
-        {
-            SetRotation(1);
         }
     }
 
@@ -214,27 +237,22 @@ public class PlayerController : MonoBehaviour
 
             if (yAngle >= 315f || yAngle <= 45f)
             {
-                Debug.Log(1 + " " + yAngle);
                 return Quaternion.Euler(0f, 0f, 0f);
             }
             else if (yAngle >= 225f && yAngle <= 315f)
             {
-                Debug.Log(2 + " " + yAngle);
                 return Quaternion.Euler(0f, -90f, 0f);
             }
             else if (yAngle >= 135f && yAngle <= 225f)
             {
-                Debug.Log(3 + " " + yAngle);
                 return Quaternion.Euler(0f, 180f, 0f);
             }
             else if (yAngle >= 45f && yAngle <= 135f)
             {
-                Debug.Log(5 + " " + yAngle);
                 return Quaternion.Euler(0f, 90f, 0f);
             }
             else
             {
-                Debug.Log(6 + " " + yAngle);
                 Debug.LogError("Неверный угол");
                 return Quaternion.Euler(0f, 0f, 0f);
             }

@@ -72,11 +72,8 @@ public class ItemPickUp : MonoBehaviour, IInteractableObject, IPointerClickHandl
             Debug.Log("Курсор занят");
             return;
         }
-        Debug.Log($"Предмет собирается начать гулять за курсором");
+
         InventoryController.Instance.SetCursorItem(_item);
-
-        Debug.Log($"Предмет {_item.Name} начал гулять за курсором");
-
         Destroy(gameObject);
     }
 

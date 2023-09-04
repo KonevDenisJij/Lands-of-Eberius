@@ -8,6 +8,8 @@ public class InventoryController : MonoBehaviour
     private Item _cursorItem;
     public Item CursorItem => _cursorItem;
 
+    private CharacterInventory _openedInventory;
+
     void Awake()
     {
         if (_instance == null)
@@ -16,32 +18,21 @@ public class InventoryController : MonoBehaviour
         }
     }
 
-    public bool HandleMouseAction(out RaycastHit hit)
+    public bool HandleMouseAction(Ray ray, RaycastHit hit)
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        hit = new RaycastHit();
-
-        /*if (InventoryUI.Instance.HandleMouseAction(out var inventorySlot))
+        if (_cursorItem == null)
         {
-            HandleSlotClick(inventorySlot);
+            return false;
+        }
 
-            return true;
-        }*/
-        
-        if (_cursorItem != null && Camera.main.ScreenToViewportPoint(Input.mousePosition).y > 0.45f)
+        if (Camera.main.ScreenToViewportPoint(Input.mousePosition).y > 0.45f)
         {
-            Debug.Log("Кинули предмет");
             ThrowItem(PlayerController.Instance.transform.position, PlayerController.Instance.transform.forward);
 
             return true;
         }
 
-        if (!Physics.Raycast(ray, out hit, 1f))
-        {
-            return true;
-        }
-
-        if (_cursorItem != null && hit.transform.gameObject.tag == "Floor")
+        if (hit.transform?.gameObject.tag == "Floor")
         {
             PlaceItem(ray);
 
@@ -50,6 +41,35 @@ public class InventoryController : MonoBehaviour
 
         return false;
     }
+
+    public void OpenInventory(CharacterInventory inventory)
+    {
+        if (_openedInventory == inventory)
+        {
+            InventoryUI.Instance.CloseInventory();
+            _openedInventory = null;
+            return;
+        }
+
+        _openedInventory = inventory;
+        InventoryUI.Instance.OpenInventory(inventory.CharacterInfo);
+    }
+
+    /// <summary>
+    /// Записать предмет
+    /// </summary>
+    /// <param name="position">Номер ячейки</param>
+    /// <param name="item">Предмет (null == удаление предмета)</param>
+    public void RecordItem(int position, Item item) 
+    {
+        if (item != null)
+        {
+            _openedInventory.CharacterInfo.AddInventoryItem(position, item);
+            return;
+        }
+
+        _openedInventory.CharacterInfo.RemoveInventoryItem(position);
+    } 
 
     /// <summary>
     /// Положить предмет в определенную позицию
@@ -69,28 +89,6 @@ public class InventoryController : MonoBehaviour
     private void PlaceItem(Ray ray)
     {
         _cursorItem.PlaceItem(ray);
-
-        ClearCursorItem();
-    }
-
-    private void HandleSlotClick(InventorySlot slot)
-    {
-        if (_cursorItem == null)
-        {
-            var item = slot.TakeItemFromSlot();
-            if (item != null)
-            {
-                SetCursorItem(item);
-            }
-            return;
-        }
-
-        var oldItem = slot.PutItemInSlot(_cursorItem);
-        if (oldItem != null)
-        {
-            SetCursorItem(oldItem);
-            return;
-        }
 
         ClearCursorItem();
     }

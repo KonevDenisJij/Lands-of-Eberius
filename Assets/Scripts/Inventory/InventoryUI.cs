@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class InventoryUI : MonoBehaviour
@@ -12,11 +11,11 @@ public class InventoryUI : MonoBehaviour
     [SerializeField]
     private Image _coursorFollowerSprite;
     [SerializeField]
-    private GraphicRaycaster _raycaster;
+    private Transform _inventoryParent;
     [SerializeField]
-    private EventSystem _eventSystem;
-
-    private CharacterInventory _openedInventory;
+    private TextMeshProUGUI _characterName;
+    [SerializeField]
+    private TextMeshProUGUI _raceClassLvlInfo;
 
     // Start is called before the first frame update
     void Awake()
@@ -34,28 +33,27 @@ public class InventoryUI : MonoBehaviour
         _coursorFollowerSprite.transform.position = Input.mousePosition;
     }
 
-    public void OpenInventory(CharacterInventory inventory)
+    public void OpenInventory(CharacterInfo info)
     {
-        _openedInventory = inventory;
-        _openedInventory.OpenInentory();
+        _characterName.text = info.Name;
+        _raceClassLvlInfo.text = info.GetRaceClassLvlInfo();
+        foreach(var slot in GetComponentsInChildren<InventorySlot>())
+        {
+            if (info.CharacterInventory.TryGetValue(slot.SlotIndex, out var item))
+            {
+                slot.PutItemInSlot(item);
+            }
+            else
+            {
+                slot.TakeItemFromSlot();
+            }
+        }
+        _inventoryParent.gameObject.SetActive(true);
     }
 
-    public bool HandleMouseAction(out InventorySlot slot)
+    public void CloseInventory()
     {
-        var m_PointerEventData = new PointerEventData(_eventSystem);
-        //Set the Pointer Event Position to that of the mouse position
-        m_PointerEventData.position = Input.mousePosition;
-
-        List<RaycastResult> results = new List<RaycastResult>();
-
-        //Raycast using the Graphics Raycaster and mouse click position
-        _raycaster.Raycast(m_PointerEventData, results);
-
-        var result = results.FirstOrDefault(a => a.gameObject.GetComponent<InventorySlot>() != null).gameObject;
-
-        slot = result != null ? result.gameObject.GetComponent<InventorySlot>() : null;
-
-        return slot != null;
+        _inventoryParent.gameObject.SetActive(false);
     }
 
     public void SetCursorItem(Item item)
