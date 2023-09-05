@@ -1,4 +1,4 @@
-using System.Linq;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,6 +16,8 @@ public class InventoryUI : MonoBehaviour
     private TextMeshProUGUI _characterName;
     [SerializeField]
     private TextMeshProUGUI _raceClassLvlInfo;
+    [SerializeField]
+    private List<InventorySlot> _inventorySlots;
 
     // Start is called before the first frame update
     void Awake()
@@ -37,9 +39,9 @@ public class InventoryUI : MonoBehaviour
     {
         _characterName.text = info.Name;
         _raceClassLvlInfo.text = info.GetRaceClassLvlInfo();
-        foreach(var slot in GetComponentsInChildren<InventorySlot>())
+        foreach(var slot in _inventorySlots)
         {
-            if (info.CharacterInventory.TryGetValue(slot.SlotIndex, out var item))
+            if (info.CharacterInventory.TryGetValue(slot.SlotIndex, out var item) && item != null)
             {
                 slot.PutItemInSlot(item);
             }

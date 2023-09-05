@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class CharacterInfo : MonoBehaviour
@@ -25,11 +26,19 @@ public class CharacterInfo : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.U))
+        {
+            Debug.Log($"{_name} Предметы: {string.Join(", ", _characterInventory.Select(a => a.Key + " " + a.Value))}");
+        }
+    }
+
     public void AddInventoryItem(int position, Item item)
     {
         if (_characterInventory.TryGetValue(position, out var oldItem))
         {
-            Debug.LogError($"В позиции {position} уже есть проедмет {oldItem.Name}");
+            Debug.LogError($"В позиции {position} уже есть предмет {oldItem.Name}");
             return;
         }
 
@@ -44,6 +53,6 @@ public class CharacterInfo : MonoBehaviour
             return;
         }
 
-        _characterInventory[position] = null;
+        _characterInventory.Remove(position);
     }
 }

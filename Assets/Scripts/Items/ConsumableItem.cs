@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "ConsumableItem", menuName = "Items")]
+[CreateAssetMenu(fileName = "ConsumableItem", menuName = "Items/ConsumableItem")]
 public class ConsumableItem : Item
 {
     public override void UseItem()
