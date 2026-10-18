@@ -10,59 +10,59 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
     private int _slotIndex;
     public int SlotIndex => _slotIndex;
 
-    private Item _itemInSlot;
-
+    private Item _itemInSlot => InventoryController.Instance.CurrentInventory.CharacterInfo.CharacterInventory[_slotIndex].Item;
     private Item _cursorItem => InventoryController.Instance.CursorItem;
     private Action<Item> _setCursorItem => InventoryController.Instance.SetCursorItem;
     private Action _clearCursorItem => InventoryController.Instance.ClearCursorItem;
-    private Action<int, Item> _recordItem => InventoryController.Instance.RecordItem;
+    private Func<int, Item, bool> _putItem => InventoryController.Instance.PutItemInSlot;
+    private Func<int, Item> _takeItem => InventoryController.Instance.TakeItemFromSlot;
 
     public void LeftMouseClick()
     {
-        if (_cursorItem == null)
+        if (_cursorItem != null && _itemInSlot != null)
         {
-            _recordItem(_slotIndex, null);
-            var item = TakeItemFromSlot();
-            if (item != null)
+            _setCursorItem(PutItemInSlot(_cursorItem, out var success));
+        }
+        else if (_cursorItem != null)
+        {
+            PutItemInSlot(_cursorItem, out var success);
+
+            if (success)
             {
-                _setCursorItem(item);
+                _clearCursorItem();
             }
-            return;
         }
-
-        var oldItem = PutItemInSlot(_cursorItem);
-        if (oldItem != null)
+        else if (_itemInSlot != null)
         {
-            _recordItem(_slotIndex, null);
-            _recordItem(_slotIndex, _itemInSlot);
-            _setCursorItem(oldItem);
-            return;
+            _setCursorItem(TakeItemFromSlot());
         }
-
-        _recordItem(_slotIndex, _itemInSlot);
-        _clearCursorItem();
     }
 
-    public void RightMouseClick()
+    public virtual void RightMouseClick()
     {
     }
 
-    public Item PutItemInSlot(Item item)
+    protected virtual Item PutItemInSlot(Item item, out bool success)
     {
         var currentItem = _itemInSlot;
-        _itemInSlot = item;
+        success = _putItem(_slotIndex, item);
+        if (!success)
+        {
+            return item;
+        }
+
         _slotImage.sprite = _itemInSlot.Icon;
         _slotImage.enabled = true;
 
         return currentItem;
     }
 
-    public Item TakeItemFromSlot()
+    protected virtual Item TakeItemFromSlot()
     {
-        var item = _itemInSlot;
+        var item = _takeItem(_slotIndex);
+
         _slotImage.sprite = null;
         _slotImage.enabled = false;
-        _itemInSlot = null;
 
         return item;
     }

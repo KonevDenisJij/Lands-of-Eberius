@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using UnityEngine;
 
 public abstract class Item : ScriptableObject
@@ -16,6 +15,11 @@ public abstract class Item : ScriptableObject
     [SerializeField]
     private Sprite _icon;
     public Sprite Icon => _icon;
+
+    [SerializeField]
+    private EquipmentSlotType _slotType = EquipmentSlotType.Any;
+    public EquipmentSlotType SlotType => _slotType;
+
 
     public string Name => _name;
 

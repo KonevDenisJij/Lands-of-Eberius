@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be9ad5eb33051204cbee3d647ff3a278, type: 3}
   m_Name: Sword
   m_EditorClassIdentifier: 
-  _name: 
-  _itemPrefab: {fileID: 0}
-  _flyDistance: 0
-  _icon: {fileID: 0}
+  _name: "\u041C\u0435\u0447 \u0441\u043C\u0435\u0440\u0442\u0438"
+  _itemPrefab: {fileID: 8781184106920598692, guid: 7513adf1112f47a48af04381e296de32, type: 3}
+  _flyDistance: 2
+  _icon: {fileID: 21300000, guid: c2ff3cb24248abc4e8e14b53113bdb85, type: 3}
+  _slot: 256

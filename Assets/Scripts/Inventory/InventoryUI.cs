@@ -18,6 +18,15 @@ public class InventoryUI : MonoBehaviour
     private TextMeshProUGUI _raceClassLvlInfo;
     [SerializeField]
     private List<InventorySlot> _inventorySlots;
+    [SerializeField]
+    private List<EquipmentSlot> _equipmentSlots;
+    [SerializeField]
+    private WeaponSlot _leftHand;
+    [SerializeField]
+    private WeaponSlot _rightHand;
+
+    private List<CharacterInfo> _characterInfos;
+    public List<CharacterInfo> CharacterInfos => _characterInfos;
 
     // Start is called before the first frame update
     void Awake()
@@ -27,6 +36,8 @@ public class InventoryUI : MonoBehaviour
             _instance = this;
         }
 
+        _characterInfos = new List<CharacterInfo>();
+        _characterInfos.AddRange(GetComponentsInChildren<CharacterInfo>());
         _coursorFollowerSprite.raycastTarget = false;
     }
 
@@ -50,7 +61,25 @@ public class InventoryUI : MonoBehaviour
                 slot.TakeItemFromSlot();
             }
         }
+
+        foreach(var slot in _equipmentSlots)
+        {
+            if (info.CharacterEquipment.TryGetValue(slot.SlotIndex, out var item) && item.Item != null)
+            {
+                slot.PutItemInSlot(item.Item);
+            }
+            else
+            {
+                slot.TakeItemFromSlot();
+            }
+        }
+
         _inventoryParent.gameObject.SetActive(true);
+    }
+
+    public void HighlightSlot(EquipmentSlotType slot)
+    {
+
     }
 
     public void CloseInventory()

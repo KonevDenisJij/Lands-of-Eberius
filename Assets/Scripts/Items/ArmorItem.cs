@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "ArmorItem", menuName = "Items/ArmorItem")]
-public class ArmorItem : Item
+public class ArmorItem : EquipableItem
 {
     public override void UseItem()
     {

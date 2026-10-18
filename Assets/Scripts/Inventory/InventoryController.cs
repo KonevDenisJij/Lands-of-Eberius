@@ -1,4 +1,6 @@
+using System.Linq;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 public class InventoryController : MonoBehaviour
 {
@@ -8,7 +10,8 @@ public class InventoryController : MonoBehaviour
     private Item _cursorItem;
     public Item CursorItem => _cursorItem;
 
-    private CharacterInventory _openedInventory;
+    private CharacterInventory _currentInventory;
+    public CharacterInventory CurrentInventory => _currentInventory;
 
     void Awake()
     {
@@ -44,32 +47,67 @@ public class InventoryController : MonoBehaviour
 
     public void OpenInventory(CharacterInventory inventory)
     {
-        if (_openedInventory == inventory)
+        if (_currentInventory == inventory)
         {
             InventoryUI.Instance.CloseInventory();
-            _openedInventory = null;
+            _currentInventory = null;
             return;
         }
 
-        _openedInventory = inventory;
+        _currentInventory = inventory;
         InventoryUI.Instance.OpenInventory(inventory.CharacterInfo);
     }
 
     /// <summary>
     /// Записать предмет
     /// </summary>
-    /// <param name="position">Номер ячейки</param>
+    /// <param name="position">Номер ячейки (если юольше 20 то слот снаряжения)/param>
     /// <param name="item">Предмет (null == удаление предмета)</param>
-    public void RecordItem(int position, Item item) 
+    /*public bool RecordItem(int position, Item item) 
     {
         if (item != null)
         {
-            _openedInventory.CharacterInfo.AddInventoryItem(position, item);
-            return;
+            if (position == 28 || position == 29)
+            {
+                return _currentInventory.CharacterInfo.AddWeaponItem(position, item);
+            }
+            if (position >=30)
+            {
+                var characterInfo = InventoryUI.Instance.CharacterInfos.SingleOrDefault(a => a.RightHand.SlotIndex == position || a.LeftHand.SlotIndex == position);
+                return characterInfo.AddWeaponItem(position, item);
+            }
+            if (position >= 20)
+            {
+                return _currentInventory.CharacterInfo.AddEquipmentItem(position, item);
+            }
+            return _currentInventory.CharacterInfo.AddInventoryItem(position, item);
         }
 
-        _openedInventory.CharacterInfo.RemoveInventoryItem(position);
-    } 
+        if (position == 28 || position == 29)
+        {
+            return _currentInventory.CharacterInfo.RemoveWeaponItem(position);
+        }
+        if (position >= 30)
+        {
+            var characterInfo = InventoryUI.Instance.CharacterInfos.SingleOrDefault(a => a.RightHand.SlotIndex == position || a.LeftHand.SlotIndex == position);
+            return characterInfo.RemoveWeaponItem(position);
+        }
+        if (position >= 20)
+        {
+            return _currentInventory.CharacterInfo.RemoveEquipmentItem(position);
+        }
+        return _currentInventory.CharacterInfo.RemoveInventoryItem(position);
+    } */
+
+    public bool PutItemInSlot(int slotIndex, Item item)
+    {
+        return _currentInventory.CharacterInfo.AddInventoryItem(slotIndex, item);
+    }
+
+    public Item TakeItemFromSlot(int slotIndex)
+    {
+        return _currentInventory.CharacterInfo.RemoveInventoryItem(slotIndex);
+    }
 
     /// <summary>
     /// Положить предмет в определенную позицию
@@ -96,6 +134,11 @@ public class InventoryController : MonoBehaviour
     public void SetCursorItem(Item item)
     {
         _cursorItem = item;
+        if (item is EquipableItem equipableItem)
+        {
+            InventoryUI.Instance.HighlightSlot(equipableItem.SlotType);
+        }
+
         InventoryUI.Instance.SetCursorItem(item);
     }
 

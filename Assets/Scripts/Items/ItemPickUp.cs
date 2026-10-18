@@ -48,7 +48,7 @@ public class ItemPickUp : MonoBehaviour, IInteractableObject, IPointerClickHandl
 
     public void SetItem(Item item)
     {
-        if (_item != null)
+        if (_item == null)
         {
             Debug.LogError("Нахуй ты это делаешь сучара?");
             return;
